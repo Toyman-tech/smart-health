@@ -265,7 +265,7 @@ export default function ClinicalCentralStation() {
         </div>
         <div style={styles.navLinks}>
           <Link href="/" style={styles.bedsideLink}>
-            🛌 View Attending Bedside Monitor
+            🛌 View User Dashboard
           </Link>
         </div>
       </nav>
