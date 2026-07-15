@@ -1,26 +1,595 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Color Palette */
+  --bg-dark: #070a13;
+  --bg-main: #0c101f;
+  --bg-card: rgba(18, 24, 46, 0.65);
+  --bg-card-hover: rgba(25, 33, 62, 0.8);
+  --border-color: rgba(255, 255, 255, 0.06);
+  --border-hover: rgba(255, 255, 255, 0.12);
+  
+  --primary: #6366f1; /* Indigo */
+  --primary-glow: rgba(99, 102, 241, 0.15);
+  --primary-hover: #4f46e5;
+  
+  --bpm: #f43f5e; /* Rose */
+  --bpm-glow: rgba(244, 63, 94, 0.2);
+  --spo2: #06b6d4; /* Cyan */
+  --spo2-glow: rgba(6, 182, 212, 0.2);
+  --temp: #f59e0b; /* Amber */
+  --temp-glow: rgba(245, 158, 11, 0.2);
+
+  --normal: #10b981; /* Emerald */
+  --warning: #f59e0b; /* Amber */
+  --critical: #ef4444; /* Crimson Red */
+  --critical-glow: rgba(239, 68, 68, 0.35);
+
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dark: #64748b;
+
+  --font-sans: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Base resets */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-dark);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.05) 0px, transparent 50%);
+  background-attachment: fixed;
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
 }
+
+/* Animations */
+@keyframes pulse-critical {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+    transform: scale(1);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    transform: scale(1.05);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse-warning {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
+}
+
+@keyframes pulse-normal {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+@keyframes pulse-bpm {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.15); }
+  40% { transform: scale(1.05); }
+  55% { transform: scale(1.2); }
+}
+
+@keyframes wave {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Utility Layout Classes */
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 24px;
+  transition: all var(--transition-normal);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+}
+
+.glass-card:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-card-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Animations Trigger classes */
+.pulse-crit {
+  animation: pulse-critical 2s infinite;
+}
+
+.pulse-warn {
+  animation: pulse-warning 2s infinite;
+}
+
+.pulse-norm {
+  animation: pulse-normal 2.5s infinite;
+}
+
+.heart-beat {
+  display: inline-block;
+  animation: pulse-bpm 1.2s infinite ease-in-out;
+}
+
+.float-anim {
+  animation: wave 4s infinite ease-in-out;
+}
+
+.fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Common form components */
+.input-field {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-main);
+  padding: 12px 16px;
+  font-size: 1rem;
+  outline: none;
+  transition: all var(--transition-fast);
+  width: 100%;
+}
+
+.input-field:focus {
+  border-color: var(--primary);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.btn {
+  background: var(--primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--primary-glow);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--border-hover);
+  box-shadow: none;
+}
+
+.btn-danger {
+  background: var(--critical);
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Mobile & Tablet Responsiveness Styles */
+@media (max-width: 1024px) {
+  /* Workspace Master-Detail grid reflow */
+  .workspace-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+
+  /* Sidebar panel max height reset on smaller screens */
+  .sidebar-panel {
+    max-height: 350px !important;
+    min-height: 250px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    font-size: 15px;
+  }
+
+  main {
+    padding: 20px 15px !important;
+    gap: 20px !important;
+  }
+
+  header, nav {
+    padding: 15px 20px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  h1 {
+    font-size: 2.2rem !important;
+  }
+
+  .vitals-grid {
+    grid-template-columns: 1fr !important;
+    gap: 15px !important;
+  }
+
+  .trends-grid {
+    grid-template-columns: 1fr !important;
+    gap: 15px !important;
+  }
+
+  /* Stats cards wrapper */
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  /* Vitals Highlights cards layout */
+  .vital-highlights-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* SVG telemetry charts columns stack */
+  .charts-grid {
+    grid-template-columns: 1fr !important;
+    gap: 15px !important;
+  }
+  
+  /* Patient Profile Card layout centering */
+  .profile-header-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 15px !important;
+  }
+
+  .profile-actions {
+    width: 100% !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .profile-actions button, 
+  .profile-actions a {
+    flex: 1 1 calc(50% - 8px) !important;
+    font-size: 0.8rem !important;
+    padding: 10px !important;
+  }
+
+  /* Landing page CTA buttons alignment on mobile */
+  .cta-group {
+    flex-direction: column !important;
+    width: 100% !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  
+  .cta-group a {
+    text-align: center !important;
+    width: 100% !important;
+  }
+
+  /* Patient list vitals horizontal compression layout */
+  .device-item-vitals {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  form, [style*="noteForm"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  form button, [style*="noteForm"] button {
+    width: 100% !important;
+  }
+
+  .log-item, [style*="logItem"] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+    padding-bottom: 12px !important;
+  }
+  .log-item span, [style*="logItem"] span {
+    margin-left: 0 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.8rem !important;
+  }
+
+  .stat-val {
+    font-size: 1.6rem !important;
+  }
+
+  td, th {
+    padding: 10px 8px !important;
+    font-size: 0.8rem !important;
+  }
+
+  .device-switcher, [style*="deviceSwitcher"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    gap: 10px !important;
+  }
+  
+  .device-switcher select, [style*="select"] {
+    width: 100% !important;
+  }
+  
+  .console-link, [style*="consoleLink"] {
+    text-align: center !important;
+    width: 100% !important;
+  }
+
+  .glass-card, [style*="glass-card"] {
+    padding: 16px !important;
+    border-radius: 12px !important;
+  }
+
+  [style*="vitalValue"] {
+    font-size: 2.4rem !important;
+  }
+
+  [style*="hVal"] {
+    font-size: 1.5rem !important;
+  }
+}
+
+.svg-chart, [style*="svgChart"] {
+  height: auto !important;
+  aspect-ratio: 500 / 150;
+}
+
+/* Mobile master-detail layout toggle rules */
+.mobile-only {
+  display: none !important;
+}
+
+@media (max-width: 1024px) {
+  /* Hide sidebar list if a device has been explicitly selected */
+  .workspace-grid.has-selected .sidebar-panel {
+    display: none !important;
+  }
+  /* Hide details panel container if no device selection is active */
+  .workspace-grid:not(.has-selected) .details-panel-container {
+    display: none !important;
+  }
+  /* Enable mobile buttons */
+  .mobile-only {
+    display: inline-flex !important;
+  }
+}
+
+/* Scrollable log table for narrow mobile viewports */
+.table-scroll {
+  overflow-x: auto !important;
+  width: 100% !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll table {
+  min-width: 600px !important;
+}
+
+/* Print Optimization Styles */
+@media print {
+  /* Hide elements that shouldn't appear on paper */
+  .no-print,
+  nav,
+  button,
+  .btn,
+  .btn-secondary,
+  .btn-danger {
+    display: none !important;
+  }
+
+  /* Reset body and page backgrounds for light-themed printing */
+  html, body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Layout container configurations */
+  main {
+    padding: 20px !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* Adjust grid layout from master-detail sidebar to vertical profile only */
+  .workspace-grid {
+    display: block !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Redefine card styling to look like a clean document layout */
+  .glass-card {
+    background: #ffffff !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    transform: none !important;
+    margin-bottom: 20px !important;
+    padding: 15px !important;
+    border-radius: 8px !important;
+    page-break-inside: avoid;
+  }
+
+  .glass-card:hover {
+    border-color: #cbd5e1 !important;
+    background: #ffffff !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Ensure text is high contrast dark grey/black */
+  h1, h2, h3, h4, h5, h6, p, span, div, strong, td, th, code {
+    color: #000000 !important;
+    text-shadow: none !important;
+  }
+
+  /* Maintain readable colored highlights for clinical context */
+  .pulse-crit,
+  .pulse-warn,
+  .pulse-norm,
+  .heart-beat {
+    animation: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Stats grid alignment */
+  section {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 10px !important;
+    margin-bottom: 20px !important;
+  }
+
+  /* Highlight vitals grid formatting */
+  div[style*="vitalHighlightsGrid"] {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 15px !important;
+  }
+
+  /* SVG trend charts container print rules */
+  svg {
+    background: #f8fafc !important;
+    border: 1px solid #94a3b8 !important;
+    border-radius: 6px !important;
+    page-break-inside: avoid;
+  }
+
+  /* Highlight points in SVG */
+  circle {
+    stroke-width: 1.5px !important;
+  }
+
+  /* Patient data log history table printing rules */
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  th {
+    border-bottom: 2px solid #64748b !important;
+    color: #000000 !important;
+    background: #f1f5f9 !important;
+    padding: 8px 12px !important;
+  }
+
+  tr {
+    border-bottom: 1px solid #e2e8f0 !important;
+    page-break-inside: avoid;
+  }
+
+  td {
+    color: #000000 !important;
+    padding: 8px 12px !important;
+  }
+
+  /* Force background color support during printing */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
