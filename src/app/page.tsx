@@ -18,6 +18,12 @@ export default function BedsideMonitorPage() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [syncMode, setSyncMode] = useState<'live' | 'simulated'>('simulated');
 
+  // Security authorization states
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
   // Load state and setup Firebase database subscription
   useEffect(() => {
     setTimeout(() => {
@@ -27,6 +33,11 @@ export default function BedsideMonitorPage() {
       if (savedId) {
         setTargetDeviceId(savedId);
       }
+      // Check secure authorization status
+      if (sessionStorage.getItem('dashboard_authorized') === 'true') {
+        setIsAuthorized(true);
+      }
+      setAuthChecked(true);
     }, 0);
 
     const unsubscribe = subscribeToLiveDevices((updatedDevices, mode) => {
@@ -149,10 +160,125 @@ export default function BedsideMonitorPage() {
     );
   };
 
-  if (!mounted) {
+  if (!mounted || !authChecked) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', height: '100dvh', background: '#070a13', padding: '20px', textAlign: 'center', boxSizing: 'border-box' }}>
         <p style={{ color: '#94a3b8', fontSize: '1.1rem', fontFamily: 'monospace', margin: 0 }}>Initialising Bedside Monitor...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthorized) {
+    const handleLoginSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (password === '00000') {
+        sessionStorage.setItem('dashboard_authorized', 'true');
+        setIsAuthorized(true);
+      } else {
+        setError('ACCESS DENIED: INVALID PASSCODE');
+        setTimeout(() => setError(''), 3000);
+      }
+    };
+
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        background: '#070a13',
+        fontFamily: 'var(--font-sans)',
+        padding: '20px',
+        boxSizing: 'border-box'
+      }}>
+        <div className="glass-card fade-in" style={{
+          width: '100%',
+          maxWidth: '400px',
+          padding: '40px 30px',
+          textAlign: 'center',
+          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.4)',
+          border: '1px solid rgba(99, 102, 241, 0.2)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '24px'
+        }}>
+          <div style={{
+            width: '70px',
+            height: '70px',
+            borderRadius: '50%',
+            background: 'rgba(99, 102, 241, 0.1)',
+            border: '2px solid var(--primary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '2rem',
+            color: 'var(--primary)',
+            boxShadow: '0 0 20px var(--primary-glow)',
+            animation: 'pulse-normal 2.5s infinite'
+          }}>
+            🔒
+          </div>
+
+          <div>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#fff', marginBottom: '8px', letterSpacing: '0.5px' }}>
+              Smart Watch Login
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: '1.4' }}>
+              Enter the security passcode to access this bedside monitor's telemetry.
+            </p>
+          </div>
+
+          <form onSubmit={handleLoginSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ position: 'relative' }}>
+              <input
+                type="password"
+                placeholder="•••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input-field"
+                style={{
+                  textAlign: 'center',
+                  fontSize: '1.25rem',
+                  letterSpacing: '8px',
+                  fontWeight: 'bold',
+                  borderColor: error ? 'var(--critical)' : 'var(--border-color)',
+                  boxShadow: error ? '0 0 10px rgba(239, 68, 68, 0.15)' : 'none'
+                }}
+                autoFocus
+              />
+            </div>
+
+            {error && (
+              <div style={{
+                color: 'var(--critical)',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                letterSpacing: '1px',
+                padding: '4px',
+                borderRadius: '4px',
+                background: 'rgba(239, 68, 68, 0.08)'
+              }}>
+                {error}
+              </div>
+            )}
+
+            <button type="submit" className="btn" style={{
+              width: '100%',
+              fontWeight: 600,
+              letterSpacing: '0.5px',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px var(--primary-glow)'
+            }}>
+              Authenticate
+            </button>
+          </form>
+
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-dark)' }}>
+            System ID: {targetDeviceId} | Security Mode: SECURED
+          </span>
+        </div>
       </div>
     );
   }
@@ -276,7 +402,7 @@ export default function BedsideMonitorPage() {
                 </span>
                 <span style={styles.vitalUnit}>%</span>
               </div>
-              <span style={styles.vitalDesc}>Normal limit: &ge; 95%</span>
+              <span style={styles.vitalDesc}>Monitored (No Alarm Threshold)</span>
             </div>
 
             {/* Temperature */}
@@ -292,7 +418,7 @@ export default function BedsideMonitorPage() {
                 <span style={styles.vitalUnit}>°C</span>
               </div>
               <span style={styles.vitalDesc}>
-                Fahrenheit: {latestReading ? ((latestReading.temp * 9/5) + 32).toFixed(1) : '--'}°F
+                Fahrenheit: {latestReading ? ((latestReading.temp * 9/5) + 32).toFixed(1) : '--'}°F | Alarm: 34 - 35°C
               </span>
             </div>
           </section>

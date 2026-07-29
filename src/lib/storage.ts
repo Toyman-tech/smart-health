@@ -39,27 +39,23 @@ export function evaluateVitalsStatus(bpm: number, spo2: number, temp: number): {
     issues.push(bpm > 100 ? `Elevated heart rate (${bpm} BPM)` : `Slightly low heart rate (${bpm} BPM)`);
   }
 
-  // Evaluate SpO2 (Normal: >= 95%)
-  if (spo2 < 92) {
-    issues.push(`Critical blood oxygen (${spo2}%)`);
-  } else if (spo2 >= 92 && spo2 < 95) {
-    issues.push(`Low blood oxygen (${spo2}%)`);
-  }
+  // SpO2 is omitted from clinical alarm criteria
 
-  // Evaluate Temperature (Normal: 36.1 - 37.2°C)
-  if (temp > 39.0 || temp < 35.0) {
-    issues.push(temp > 39.0 ? `High fever (${temp.toFixed(1)}°C)` : `Hypothermia (${temp.toFixed(1)}°C)`);
-  } else if ((temp > 37.2 && temp <= 39.0) || (temp >= 35.0 && temp < 36.1)) {
+  // Evaluate Temperature (Normal: 36.1 - 37.2°C, Critical Hypothermia: 34.0 - 35.0°C)
+  if (temp >= 34.0 && temp <= 35.0) {
+    issues.push(`Critical temperature (${temp.toFixed(1)}°C)`);
+  } else if (temp > 39.0) {
+    issues.push(`High fever (${temp.toFixed(1)}°C)`);
+  } else if ((temp > 37.2 && temp <= 39.0) || (temp > 35.0 && temp < 36.1)) {
     issues.push(temp > 37.2 ? `Mild fever (${temp.toFixed(1)}°C)` : `Low body temp (${temp.toFixed(1)}°C)`);
   }
 
-  const isCritical = bpm > 120 || bpm < 50 || spo2 < 92 || temp > 39.0 || temp < 35.0;
+  const isCritical = bpm > 120 || bpm < 50 || (temp >= 34.0 && temp <= 35.0);
   const isWarning = !isCritical && (
     (bpm > 100 && bpm <= 120) || 
     (bpm >= 50 && bpm < 60) || 
-    (spo2 >= 92 && spo2 < 95) || 
-    (temp > 37.2 && temp <= 39.0) || 
-    (temp >= 35.0 && temp < 36.1)
+    (temp > 37.2) || 
+    (temp > 35.0 && temp < 36.1)
   );
 
   if (isCritical) {
